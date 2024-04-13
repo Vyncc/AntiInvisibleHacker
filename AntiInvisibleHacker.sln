@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34607.79
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AntiInvisibleHacker", "AntiInvisibleHacker\AntiInvisibleHacker.vcxproj", "{EC716FAB-6F29-4299-83EB-18BB258EBA23}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC716FAB-6F29-4299-83EB-18BB258EBA23}.Release|x64.ActiveCfg = Release|x64
+		{EC716FAB-6F29-4299-83EB-18BB258EBA23}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9C6E1941-E1E7-4D57-9543-9D399E2EAF5B}
+	EndGlobalSection
+EndGlobal

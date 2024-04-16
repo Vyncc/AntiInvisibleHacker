@@ -41,11 +41,7 @@ void AntiInvisibleHacker::onLoad()
 		{
 			if (!pri) continue;
 
-			uintptr_t loadoutsAddress = pri.memory_address + OFFSET_PRI_LOADOUTS;
-			FClientLoadoutDatas* loadoutDatas = reinterpret_cast<FClientLoadoutDatas*>(loadoutsAddress);
-
-			//Check if player is exploiting invisible car hack
-			if (loadoutDatas->Loadouts[0].Products.Num() == 0 || loadoutDatas->Loadouts[1].Products.Num() == 0)
+			if (IsHacker(pri))
 			{
 				ShowBakkesmodNotification("Cheater detected !", std::string(pri.GetPlayerName().ToString() + " has a good gaming chair!"));
 			}
@@ -56,6 +52,18 @@ void AntiInvisibleHacker::onLoad()
 	gameWrapper->RegisterDrawable([this](CanvasWrapper canvas) {
 		Render(canvas);
 		});
+}
+
+bool AntiInvisibleHacker::IsHacker(PriWrapper pri)
+{
+	uintptr_t loadoutsAddress = pri.memory_address + OFFSET_PRI_LOADOUTS;
+	FClientLoadoutDatas* loadoutDatas = reinterpret_cast<FClientLoadoutDatas*>(loadoutsAddress);
+
+	LOG("Blue loadout ({})", loadoutDatas->Loadouts[0].Products.Num());
+	LOG("Orange loadout ({})", loadoutDatas->Loadouts[1].Products.Num());
+
+	//Check if player is exploiting invisible car hack
+	return (loadoutDatas->Loadouts[0].Products.Num() == 0 || loadoutDatas->Loadouts[1].Products.Num() == 0);
 }
 
 void AntiInvisibleHacker::RevealInvisibleHacker(PriWrapper pri)
@@ -78,16 +86,10 @@ void AntiInvisibleHacker::RevealInvisibleHacker(PriWrapper pri)
 		return;
 	}
 
-	uintptr_t loadoutsAddress = pri.memory_address + OFFSET_PRI_LOADOUTS;
-	FClientLoadoutDatas* loadoutDatas = reinterpret_cast<FClientLoadoutDatas*>(loadoutsAddress);
-
-	LOG("Blue loadout ({})", loadoutDatas->Loadouts[0].Products.Num());
-	LOG("Orange loadout ({})", loadoutDatas->Loadouts[1].Products.Num());
-
-	//Check if player is exploiting invisible car hack
-	if (loadoutDatas->Loadouts[0].Products.Num() == 0 || loadoutDatas->Loadouts[1].Products.Num() == 0)
+	if (IsHacker(pri))
 	{
 		LOG("Hacker detected");
+
 		//check if hacker doesn't have car
 		if (!priCar.GetBoostComponent() && !priCar.GetDodgeComponent() && !priCar.GetAirControlComponent() && !priCar.GetJumpComponent() && !priCar.GetDoubleJumpComponent())
 		{
@@ -136,11 +138,7 @@ void AntiInvisibleHacker::Render(CanvasWrapper canvas)
 		CarWrapper priCar = pri.GetCar();
 		if (!priCar) continue;
 
-		uintptr_t loadoutsAddress = pri.memory_address + OFFSET_PRI_LOADOUTS;
-		FClientLoadoutDatas* loadoutDatas = reinterpret_cast<FClientLoadoutDatas*>(loadoutsAddress);
-
-		//Check if player is exploiting invisible car hack
-		if (loadoutDatas->Loadouts[0].Products.Num() == 0 || loadoutDatas->Loadouts[1].Products.Num() == 0)
+		if (IsHacker(pri))
 		{
 			//check if hacker doesn't have car
 			if (!priCar.GetBoostComponent() && !priCar.GetDodgeComponent() && !priCar.GetAirControlComponent() && !priCar.GetJumpComponent() && !priCar.GetDoubleJumpComponent())

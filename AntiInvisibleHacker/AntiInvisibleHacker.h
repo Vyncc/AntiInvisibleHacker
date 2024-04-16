@@ -16,6 +16,7 @@ class AntiInvisibleHacker: public BakkesMod::Plugin::BakkesModPlugin, public Bak
 	bool EnableNotifications = true;
 	bool EnableCanvas = false;
 
+	bool IsHacker(PriWrapper pri);
 	void RevealInvisibleHacker(PriWrapper pri);
 	void RevealInvisibleHackers();
 

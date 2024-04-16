@@ -44,6 +44,11 @@ void AntiInvisibleHacker::RenderSettings()
 			});
 	}
 
+	ImGui::NewLine();
+	ImGui::Separator();
+
+	ImGui::Text("Important note :");
+	ImGui::Text("I recommend you to unload/remove the plugin once Psyonix releases a new Rocket League update,\nas it might crash your game due to the changes Psyonix will make to the game.");
 }
 
 /*

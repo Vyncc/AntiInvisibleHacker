@@ -5,7 +5,7 @@
 
 std::string AntiInvisibleHacker::GetPluginName()
 {
-	return "AntiInvisibleHacker";
+	return "AntiInvisibleHacker v1.1";
 }
 
 void AntiInvisibleHacker::SetImGuiContext(uintptr_t ctx)
@@ -18,37 +18,64 @@ void AntiInvisibleHacker::SetImGuiContext(uintptr_t ctx)
 //  f2 -> plugins -> AntiInvisibleHacker
 void AntiInvisibleHacker::RenderSettings()
 {
-	ImGui::Checkbox("Enable Plugin", &EnablePlugin);
-
-	if (!EnablePlugin)
+	if (AreGlobalsValid())
 	{
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		if (ImGui::Checkbox("Enable Plugin", &EnablePlugin))
+		{
+			if (!EnablePlugin)
+			{
+				EnablePluginInReplays = false;
+			}
+		}
+
+		if (!EnablePlugin)
+		{
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+		ImGui::Checkbox("Enable Plugin In Replays", &EnablePluginInReplays);
+		if (!EnablePlugin)
+		{
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
+		}
+
+		ImGui::Checkbox("Enable Notifications", &EnableNotifications);
+		ImGui::Checkbox("Enable Canvas", &EnableCanvas);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("It will display a box on the cheater, in case the car doesn't spawn");
+			ImGui::EndTooltip();
+		}
+
+		ImGui::NewLine();
+
+		if (ImGui::Button("Reveal Invisible Hackers"))
+		{
+			gameWrapper->Execute([&](GameWrapper* gw) {
+				cvarManager->executeCommand("antiinvisiblehacker_reveal_invisible_hackers");
+				});
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Click here if somehow the plugin doesn't automatically reveal the cheater");
+			ImGui::Text("It should not happen, but just in case");
+			ImGui::EndTooltip();
+		}
+
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		ImGui::Text("Important note :");
+		ImGui::Text("This plugin will only work for the Rocket League version v2.51.\nSo I recommend you to remove the plugin from your plugins folder once Psyonix releases a new Rocket League update, as it might crash your game due to the changes\nPsyonix will make to the game.");
 	}
-	ImGui::Checkbox("Enable Plugin In Replays", &EnablePluginInReplays);
-	if (!EnablePlugin)
+	else
 	{
-		ImGui::PopItemFlag();
-		ImGui::PopStyleVar();
+		ImGui::Text("This plugin has been made to only work for the Rocket League version v2.51 and won't work for the current version you are playing on.");
+		ImGui::Text("I recommend you to remove the plugin from your plugins folder.");
 	}
-
-	ImGui::Checkbox("Enable Notifications", &EnableNotifications);
-	ImGui::Checkbox("Enable Canvas", &EnableCanvas);
-
-	ImGui::NewLine();
-
-	if (ImGui::Button("Reveal Invisible Hackers"))
-	{
-		gameWrapper->Execute([&](GameWrapper* gw) {
-			cvarManager->executeCommand("antiinvisiblehacker_reveal_invisible_hackers");
-			});
-	}
-
-	ImGui::NewLine();
-	ImGui::Separator();
-
-	ImGui::Text("Important note :");
-	ImGui::Text("I recommend you to unload/remove the plugin once Psyonix releases a new Rocket League update,\nas it might crash your game due to the changes Psyonix will make to the game.");
 }
 
 /*

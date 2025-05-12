@@ -4,9 +4,10 @@
 #include "RenderingTools/RenderingTools.h"
 
 
-BAKKESMOD_PLUGIN(AntiInvisibleHacker, "AntiInvisibleHacker", plugin_version, PLUGINTYPE_FREEPLAY)
+BAKKESMOD_PLUGIN(AntiInvisibleHacker, "AntiInvisibleHacker v1.1", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
+std::shared_ptr<GameWrapper> _globalGameWrapper;
 
 TArray<class UObject*>* GObjects;
 TArray<struct FNameEntry*>* GNames;
@@ -14,44 +15,48 @@ TArray<struct FNameEntry*>* GNames;
 void AntiInvisibleHacker::onLoad()
 {
 	_globalCvarManager = cvarManager;
+	_globalGameWrapper = gameWrapper;
 
 	InitGlobals();
-	
-	cvarManager->registerNotifier("antiinvisiblehacker_reveal_invisible_hackers", [&](std::vector<std::string> args) {
-		RevealInvisibleHackers();
-		}, "", 0);
 
-	gameWrapper->HookEventWithCaller<CarWrapper>("Function TAGame.Car_TA.PostBeginPlay", [this](CarWrapper caller, void* params, std::string eventname) {
-		if (!EnablePlugin) return;
-		if (gameWrapper->IsInReplay() && !EnablePluginInReplays) return;
+	if (AreGlobalsValid())
+	{
+		cvarManager->registerNotifier("antiinvisiblehacker_reveal_invisible_hackers", [&](std::vector<std::string> args) {
+			RevealInvisibleHackers();
+			}, "", 0);
 
-		gameWrapper->SetTimeout([&, caller](GameWrapper* gw) mutable {
+		gameWrapper->HookEventWithCallerPost<CarWrapper>("Function TAGame.Car_TA.PostBeginPlay", [this](CarWrapper caller, void* params, std::string eventname) {
+			if (!EnablePlugin) return;
+			if (gameWrapper->IsInReplay() && !EnablePluginInReplays) return;
 
-			RevealInvisibleHacker(caller.GetPRI());
-			}, 0.05f);
+			gameWrapper->SetTimeout([&, caller](GameWrapper* gw) mutable {
+				RevealInvisibleHacker(caller.GetPRI());
+				}, 0.05f);
+			});
 
-		});
+		gameWrapper->HookEventWithCaller<ServerWrapper>("Function GameEvent_Soccar_TA.Countdown.BeginState", [this](ServerWrapper caller, void* params, std::string eventname) {
+			if (!EnableNotifications) return;
 
-	gameWrapper->HookEventWithCaller<ServerWrapper>("Function GameEvent_Soccar_TA.Countdown.BeginState", [this](ServerWrapper caller, void* params, std::string eventname) {
-		if (!EnableNotifications) return;
-
-		LOG("Checking for cheaters");
-
-		for (PriWrapper pri : caller.GetPRIs())
-		{
-			if (!pri) continue;
-
-			if (IsHacker(pri))
+			if (caller.GetSecondsRemaining() == 300)
 			{
-				ShowBakkesmodNotification("Cheater detected !", std::string(pri.GetPlayerName().ToString() + " has a good gaming chair!"));
+				LOG("Checking for cheaters");
+
+				for (PriWrapper pri : caller.GetPRIs())
+				{
+					if (!pri) continue;
+
+					if (IsHacker(pri))
+					{
+						ShowBakkesmodNotification("Cheater detected !", std::string(pri.GetPlayerName().ToString() + " has a good gaming chair!"));
+					}
+				}
 			}
-		}
+			});
 
-		});
-
-	gameWrapper->RegisterDrawable([this](CanvasWrapper canvas) {
-		Render(canvas);
-		});
+		gameWrapper->RegisterDrawable([this](CanvasWrapper canvas) {
+			Render(canvas);
+			});
+	}
 }
 
 bool AntiInvisibleHacker::IsHacker(PriWrapper pri)
@@ -59,11 +64,17 @@ bool AntiInvisibleHacker::IsHacker(PriWrapper pri)
 	uintptr_t loadoutsAddress = pri.memory_address + OFFSET_PRI_LOADOUTS;
 	FClientLoadoutDatas* loadoutDatas = reinterpret_cast<FClientLoadoutDatas*>(loadoutsAddress);
 
-	LOG("Blue loadout ({})", loadoutDatas->Loadouts[0].Products.Num());
-	LOG("Orange loadout ({})", loadoutDatas->Loadouts[1].Products.Num());
+	//LOG("Blue loadout ({})", loadoutDatas->Loadouts[0].Products.Num());
+	//LOG("Orange loadout ({})", loadoutDatas->Loadouts[1].Products.Num());
 
 	//Check if player is exploiting invisible car hack
 	return (loadoutDatas->Loadouts[0].Products.Num() == 0 || loadoutDatas->Loadouts[1].Products.Num() == 0);
+}
+
+bool AntiInvisibleHacker::HasNoCar(CarWrapper car)
+{
+	return (!car.GetbLoadoutSet() && !car.GetBoostComponent() && !car.GetDodgeComponent() &&
+		!car.GetAirControlComponent() && !car.GetJumpComponent() && !car.GetDoubleJumpComponent());
 }
 
 void AntiInvisibleHacker::RevealInvisibleHacker(PriWrapper pri)
@@ -91,7 +102,7 @@ void AntiInvisibleHacker::RevealInvisibleHacker(PriWrapper pri)
 		LOG("Hacker detected");
 
 		//check if hacker doesn't have car
-		if (!priCar.GetBoostComponent() && !priCar.GetDodgeComponent() && !priCar.GetAirControlComponent() && !priCar.GetJumpComponent() && !priCar.GetDoubleJumpComponent())
+		if (HasNoCar(priCar))
 		{
 			ExecPatch(priCar);
 		}
@@ -141,7 +152,7 @@ void AntiInvisibleHacker::Render(CanvasWrapper canvas)
 		if (IsHacker(pri))
 		{
 			//check if hacker doesn't have car
-			if (!priCar.GetBoostComponent() && !priCar.GetDodgeComponent() && !priCar.GetAirControlComponent() && !priCar.GetJumpComponent() && !priCar.GetDoubleJumpComponent())
+			if (HasNoCar(priCar))
 			{
 				uintptr_t locationAddress = priCar.memory_address + OFFSET_ACTOR_LOCATION;
 				uintptr_t rotationAddress = priCar.memory_address + OFFSET_ACTOR_ROTATION;
@@ -151,7 +162,14 @@ void AntiInvisibleHacker::Render(CanvasWrapper canvas)
 				priCarLocation.Z += 10.f;
 
 				canvas.SetColor(255, 255, 255, 255);
-				RT::Cube(priCarLocation, RotatorToQuat(priCarRotation), 75.f, 2.f).Draw(canvas);
+
+				CameraWrapper camera = gameWrapper->GetCamera();
+				if (!camera) continue;
+
+				if (RT::Frustum(canvas, camera).IsInFrustum(priCarLocation))
+				{
+					RT::Cube(priCarLocation, RotatorToQuat(priCarRotation), 75.f, 2.f).Draw(canvas);
+				}
 			}
 		}
 	}

@@ -17,6 +17,7 @@ class AntiInvisibleHacker: public BakkesMod::Plugin::BakkesModPlugin, public Bak
 	bool EnableCanvas = false;
 
 	bool IsHacker(PriWrapper pri);
+	bool HasNoCar(CarWrapper car);
 	void RevealInvisibleHacker(PriWrapper pri);
 	void RevealInvisibleHackers();
 

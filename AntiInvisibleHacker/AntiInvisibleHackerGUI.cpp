@@ -2,10 +2,11 @@
 #include "AntiInvisibleHacker.h"
 
 #include "IMGUI/imgui_internal.h"
+#include <shellapi.h> //for ShellExecute
 
 std::string AntiInvisibleHacker::GetPluginName()
 {
-	return "AntiInvisibleHacker v1.1";
+	return "AntiInvisibleHacker v1.2";
 }
 
 void AntiInvisibleHacker::SetImGuiContext(uintptr_t ctx)
@@ -69,13 +70,60 @@ void AntiInvisibleHacker::RenderSettings()
 		ImGui::Separator();
 
 		ImGui::Text("Important note :");
-		ImGui::Text("This plugin will only work for the Rocket League version v2.51.\nSo I recommend you to remove the plugin from your plugins folder once Psyonix releases a new Rocket League update, as it might crash your game due to the changes\nPsyonix will make to the game.");
+		RenderUnderLine(ImColor(255, 255, 252, 170));
+		ImGui::Text("This plugin will only work for the Rocket League version v2.52.\nSo I recommend you to remove the plugin from your plugins folder once Psyonix releases a new Rocket League update, as it might crash your game due to the changes\nPsyonix will make to the game.");
 	}
 	else
 	{
-		ImGui::Text("This plugin has been made to only work for the Rocket League version v2.51 and won't work for the current version you are playing on.");
+		ImGui::Text("This plugin has been made to only work for the Rocket League version v2.52 and won't work for the current version you are playing on.");
 		ImGui::Text("I recommend you to remove the plugin from your plugins folder.");
 	}
+
+	ImGui::NewLine();
+	ImGui::NewLine();
+
+	ImGui::Text("Plugin made by");
+	ImGui::SameLine();
+	RenderLink("https://x.com/Vync5");
+}
+
+void AntiInvisibleHacker::RenderLink(std::string link)
+{
+	std::wstring w_LINK = s2ws(link);
+	LPCWSTR L_LINK = w_LINK.c_str();
+
+	ImGui::TextColored(ImColor(3, 94, 252, 255), link.c_str());
+	RenderUnderLine(ImColor(3, 94, 252, 255));
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		if (ImGui::IsMouseClicked(0))
+		{
+			ShellExecute(0, 0, L_LINK, 0, 0, SW_SHOW); //open link in web browser
+		}
+		RenderUnderLine(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+	}
+}
+
+//https://gist.github.com/dougbinks/ef0962ef6ebe2cadae76c4e9f0586c69
+void AntiInvisibleHacker::RenderUnderLine(ImColor col_)
+{
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	min.y = max.y;
+	ImGui::GetWindowDrawList()->AddLine(min, max, col_, 1.0f);
+}
+
+std::wstring AntiInvisibleHacker::s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
 }
 
 /*

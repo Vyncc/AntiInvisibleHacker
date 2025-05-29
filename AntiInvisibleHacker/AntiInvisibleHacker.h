@@ -26,6 +26,11 @@ class AntiInvisibleHacker: public BakkesMod::Plugin::BakkesModPlugin, public Bak
 	//Utils
 	void ShowBakkesmodNotification(std::string title, std::string text, float timeout = 3.5f, std::string texture = "default", uint8_t toastType = 0, float width = 290.f, float height = 60.f);
 
+
+	void RenderLink(std::string link);
+	void RenderUnderLine(ImColor col_);
+	std::wstring s2ws(const std::string& s);
+
 	//Boilerplate
 	virtual void onLoad();
 	virtual void onUnload();

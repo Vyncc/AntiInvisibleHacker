@@ -4,7 +4,7 @@
 #include "RenderingTools/RenderingTools.h"
 
 
-BAKKESMOD_PLUGIN(AntiInvisibleHacker, "AntiInvisibleHacker v1.1", plugin_version, PLUGINTYPE_FREEPLAY)
+BAKKESMOD_PLUGIN(AntiInvisibleHacker, "AntiInvisibleHacker v1.2", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
 std::shared_ptr<GameWrapper> _globalGameWrapper;
